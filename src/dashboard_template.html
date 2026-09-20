@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Netflix Content Trends Analysis · Faria Islam</title>
+<meta name="description" content="Interactive dashboard analysing 7,787 Netflix titles: catalogue growth, genres, countries, ratings and durations. Portfolio project by Faria Islam.">
+<meta name="theme-color" content="#141414">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23141414'/%3E%3Cpath d='M14 46h8V30h8v16h8V22h8v24h4v4H14z' fill='%23E50914'/%3E%3C/svg%3E">
+<style>
+:root{
+  --red:#e50914;--red-dark:#b20710;--bg:#141414;--bg2:#181818;--card:#1f1f1f;--card2:#2a2a2a;
+  --line:#333;--text:#fff;--muted:#b3b3b3;--dim:#808080;--tv:#f5f5f1;--green:#46d369;
+  --display:"Bebas Neue","Oswald","Arial Narrow","Helvetica Neue Condensed",Impact,sans-serif;
+  --body:"Netflix Sans","Helvetica Neue",Helvetica,Arial,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- nav ---------- */
+.nav{position:fixed;inset:0 0 auto 0;height:68px;z-index:50;display:flex;align-items:center;gap:28px;padding:0 4%;
+  background:linear-gradient(180deg,rgba(0,0,0,.85) 10%,transparent);transition:background .4s}
+.nav.solid{background:var(--bg)}
+.brand{font-family:var(--display);color:var(--red);font-size:30px;letter-spacing:1px;text-decoration:none;font-weight:700;
+  line-height:1;white-space:nowrap;transform:scaleY(1.12);text-shadow:0 2px 6px rgba(0,0,0,.4)}
+.brand small{color:#fff;font-size:15px;margin-left:6px;letter-spacing:2px;opacity:.85}
+.links{display:flex;gap:20px;list-style:none;margin:0;padding:0}
+.links a{text-decoration:none;font-size:14px;color:#e5e5e5;transition:color .3s;white-space:nowrap}
+.links a:hover{color:var(--muted)} .links a.active{color:#fff;font-weight:700}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.search{display:flex;align-items:center;border:1px solid transparent;transition:all .3s;padding:4px}
+.search.open{border-color:#fff;background:rgba(0,0,0,.75)}
+.search input{width:0;border:0;background:transparent;color:#fff;font-size:14px;transition:width .3s;padding:0}
+.search.open input{width:180px;padding:2px 6px}
+.search input:focus{outline:none}
+.icon-btn{background:none;border:0;color:#fff;padding:2px;display:grid;place-items:center}
+.avatar{width:32px;height:32px;border-radius:4px;background:linear-gradient(135deg,#e50914,#6d0a0f);display:grid;place-items:center;
+  font-weight:700;font-size:13px;text-decoration:none}
+.menu-btn{display:none;background:none;border:0;color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
+.menu-btn:after{content:" ▾"}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:88vh;display:flex;align-items:flex-end;padding:110px 4% 14vh;overflow:hidden;
+  background:radial-gradient(ellipse at 72% 30%,rgba(229,9,20,.55),transparent 55%),
+             radial-gradient(ellipse at 90% 80%,rgba(120,6,14,.6),transparent 50%),#000}
+.hero:before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(90deg,transparent 0 58px,rgba(255,255,255,.035) 58px 60px),
+  linear-gradient(77deg,rgba(0,0,0,.92) 18%,rgba(0,0,0,.35) 60%,transparent 85%)}
+.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:22vh;background:linear-gradient(180deg,transparent,var(--bg))}
+.hero-art{position:absolute;right:4%;top:18%;width:min(46vw,640px);height:56%;display:flex;align-items:flex-end;gap:2.2%;opacity:.95}
+.hero-art i{flex:1;background:linear-gradient(180deg,var(--red),#5c0409);border-radius:3px 3px 0 0;height:0;
+  box-shadow:0 0 30px rgba(229,9,20,.35);transition:height 1.4s cubic-bezier(.2,.8,.2,1)}
+.hero-art i.tv{background:linear-gradient(180deg,#fff,#6b6b6b)}
+.hero-art span{position:absolute;bottom:-26px;font-size:11px;color:var(--dim)}
+.hero-copy{position:relative;z-index:2;max-width:620px}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);letter-spacing:4px;font-size:15px;color:#ddd}
+.tag b{color:var(--red);font-size:26px;letter-spacing:0}
+.hero h1{font-family:var(--display);font-size:clamp(44px,6.4vw,92px);line-height:.9;margin:10px 0 16px;letter-spacing:1px;font-weight:700;text-transform:uppercase;text-shadow:2px 4px 18px rgba(0,0,0,.6)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:15px;color:#ddd;margin-bottom:14px}
+.match{color:var(--green);font-weight:700}
+.badge{border:1px solid rgba(255,255,255,.5);padding:0 6px;font-size:12px;border-radius:3px}
+.hero p.lead{font-size:clamp(15px,1.5vw,20px);line-height:1.45;color:#eee;text-shadow:1px 1px 6px rgba(0,0,0,.6);min-height:3em;transition:opacity .4s}
+.hero-dots{display:flex;gap:6px;margin:6px 0 20px}
+.hero-dots button{width:22px;height:3px;border:0;padding:0;background:rgba(255,255,255,.3)}
+.hero-dots button.on{background:#fff}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:4px;padding:10px 26px 10px 20px;font-size:18px;font-weight:700;text-decoration:none;transition:opacity .2s}
+.btn:hover{opacity:.8}
+.btn-play{background:#fff;color:#000}
+.btn-info{background:rgba(109,109,110,.7);color:#fff}
+.btn svg{width:26px;height:26px}
+.rating-flag{position:absolute;right:0;bottom:22vh;z-index:2;display:flex;align-items:center;gap:14px}
+.rating-flag .mute{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.7);background:transparent;color:#fff;font-size:15px}
+.rating-flag .flag{background:rgba(51,51,51,.6);border-left:3px solid #dcdcdc;padding:6px 40px 6px 12px;font-size:15px}
+
+/* ---------- sections ---------- */
+main{position:relative;z-index:3;margin-top:-10vh}
+.row{padding:0 4%;margin:0 0 46px}
+.row-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.row h2{font-size:clamp(18px,1.6vw,24px);margin:0;font-weight:700;color:#e5e5e5}
+.row h2 .explore{font-size:13px;color:#54b9c5;margin-left:10px;opacity:0;transition:opacity .3s;font-weight:600}
+.row:hover h2 .explore{opacity:1}
+.sub{color:var(--dim);font-size:14px;margin:4px 0 0}
+.seg{display:inline-flex;background:#000;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{background:transparent;color:var(--muted);border:0;padding:7px 14px;font-size:13px;font-weight:600}
+.seg button.on{background:var(--red);color:#fff}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border-radius:6px;padding:18px 18px 16px;position:relative;overflow:hidden;transition:transform .3s,background .3s}
+.kpi:hover{transform:scale(1.04);background:var(--card2);z-index:2}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.kpi span{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.6px}
+.kpi strong{display:block;font-family:var(--display);font-size:46px;line-height:1;margin:8px 0 4px;letter-spacing:1px}
+.kpi small{color:var(--dim);font-size:12.5px;line-height:1.35;display:block}
+
+/* top 10 */
+.slider{position:relative}
+.track{display:flex;gap:8px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;padding:8px 2px 14px}
+.track::-webkit-scrollbar{display:none}
+.arrow{position:absolute;top:8px;bottom:14px;width:4%;min-width:34px;border:0;background:rgba(20,20,20,.7);color:#fff;font-size:34px;z-index:4;opacity:0;transition:opacity .2s}
+.slider:hover .arrow{opacity:1}
+.arrow.l{left:-4%} .arrow.r{right:-4%}
+.arrow[disabled]{visibility:hidden}
+.top10{flex:0 0 auto;display:flex;align-items:flex-end;height:170px;border:0;background:none;color:#fff;padding:0;text-align:left;transition:transform .3s}
+.top10:hover{transform:scale(1.06)}
+.top10 .num{font-family:var(--display);font-size:170px;line-height:.78;color:var(--bg);-webkit-text-stroke:4px #595959;letter-spacing:-12px;margin-right:-2px}
+.top10 .poster{width:118px;height:166px;border-radius:4px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.6)}
+.top10 .poster b{font-size:15px;line-height:1.15;position:relative}
+.top10 .poster em{font-style:normal;font-family:var(--display);font-size:30px;position:relative}
+.top10 .poster small{font-size:11px;opacity:.85;position:relative;display:block}
+
+/* panels */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:12px}
+.panel{background:var(--bg2);border:1px solid #232323;border-radius:6px;padding:18px 18px 12px;min-width:0}
+.panel h3{margin:0 0 2px;font-size:16px}
+.panel .sub{margin-bottom:10px;font-size:13px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin:6px 0 0;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.insight{margin-top:10px;font-size:13.5px;color:#d2d2d2;line-height:1.5;border-top:1px solid #262626;padding-top:10px}
+.insight b{color:#fff}
+.bar{transition:opacity .2s}
+.bar:hover{opacity:.75}
+.tip{position:fixed;pointer-events:none;background:#fff;color:#000;font-size:12.5px;padding:7px 10px;border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.5);z-index:100;opacity:0;transition:opacity .12s;max-width:240px;line-height:1.4}
+.tip b{display:block}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.people ol{margin:0;padding:0;list-style:none;counter-reset:n}
+.people li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #242424;font-size:14px;counter-increment:n}
+.people li:before{content:counter(n);font-family:var(--display);font-size:24px;color:var(--red);width:26px}
+.people li span{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.people button{background:none;border:0;color:#fff;padding:0;font-size:14px;text-align:left}
+.people button:hover{text-decoration:underline}
+
+/* browse */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;background:var(--bg2);border:1px solid #232323;border-radius:6px;padding:14px;margin-bottom:14px}
+.filters label{display:grid;gap:5px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.filters input,.filters select{background:#000;color:#fff;border:1px solid #444;border-radius:3px;padding:8px 10px;font-size:14px;min-width:130px}
+.filters input[type=search]{min-width:220px}
+.ghost{background:transparent;border:1px solid #666;color:#fff;border-radius:3px;padding:8px 14px;font-size:14px}
+.ghost:hover{border-color:#fff}
+.count{color:var(--muted);font-size:14px;margin:0 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.card{position:relative;border:0;padding:0;background:var(--card);border-radius:4px;overflow:hidden;text-align:left;color:#fff;transition:transform .3s,box-shadow .3s;aspect-ratio:16/9}
+.card:hover,.card:focus-visible{transform:scale(1.08);z-index:5;box-shadow:0 10px 30px rgba(0,0,0,.8)}
+.art{position:absolute;inset:0;padding:10px;display:flex;flex-direction:column;justify-content:flex-end}
+.art:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent 70%)}
+.art .kind{position:absolute;top:8px;left:9px;font-family:var(--display);color:var(--red);font-size:20px;letter-spacing:1px;text-shadow:0 1px 3px #000}
+.art .kind.tvk{color:#fff}
+.art b{position:relative;font-size:15px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.art small{position:relative;color:#ccc;font-size:11.5px;margin-top:3px}
+.art .new{position:absolute;top:8px;right:8px;background:var(--red);font-size:10px;font-weight:700;padding:2px 5px;border-radius:2px;letter-spacing:.5px}
+.more{display:block;margin:18px auto 0}
+.empty{padding:40px;text-align:center;color:var(--muted);grid-column:1/-1}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid #262626;text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.meter{height:6px;background:#2a2a2a;border-radius:3px;overflow:hidden;min-width:80px}
+.meter i{display:block;height:100%;background:var(--red)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;counter-reset:s}
+.step{background:var(--card);border-radius:6px;padding:16px;font-size:14px;line-height:1.5;color:#d6d6d6;counter-increment:s}
+.step:before{content:"0" counter(s);font-family:var(--display);color:var(--red);font-size:30px;display:block}
+.step b{color:#fff;display:block;margin-bottom:4px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.72);display:none;overflow-y:auto;padding:30px 12px}
+.modal.open{display:block}
+.sheet{max-width:850px;margin:0 auto;background:var(--bg2);border-radius:8px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8);animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+.sheet-hero{position:relative;height:300px;display:flex;align-items:flex-end;padding:30px 44px}
+.sheet-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--bg2) 3%,transparent 60%)}
+.sheet-hero h2{position:relative;z-index:2;font-family:var(--display);font-size:clamp(34px,5vw,58px);line-height:.95;margin:0;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.close{position:absolute;top:14px;right:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:#181818;color:#fff;font-size:22px;line-height:1}
+.sheet-body{display:grid;grid-template-columns:2fr 1fr;gap:28px;padding:6px 44px 36px;font-size:15px;line-height:1.55}
+.sheet-body .meta{color:#bcbcbc}
+.side p{margin:0 0 10px;color:#ddd;font-size:14px}
+.side span{color:#777}
+.sheet-body .desc{font-size:16px}
+.linkish{background:none;border:0;color:#ddd;padding:0;font-size:14px;text-decoration:underline;text-decoration-color:#555}
+.linkish:hover{color:#fff}
+.info-body{padding:10px 44px 36px;line-height:1.6;color:#d6d6d6;font-size:15px}
+.info-body h3{color:#fff;margin:20px 0 6px}
+.info-body code{background:#000;padding:1px 5px;border-radius:3px;font-size:13px}
+
+footer{max-width:980px;margin:40px auto 0;padding:30px 4% 50px;color:var(--dim);font-size:13px}
+.socials{display:flex;gap:18px;margin-bottom:18px}
+.socials a{font-weight:700;color:#ccc;text-decoration:none}
+.foot-links{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;list-style:none;padding:0;margin:0 0 22px}
+.foot-links a,.foot-links button{color:var(--dim);text-decoration:none;background:none;border:0;padding:0;font-size:13px;text-align:left}
+.foot-links a:hover,.foot-links button:hover{text-decoration:underline}
+.code-btn{background:transparent;border:1px solid var(--dim);color:var(--dim);padding:6px 10px;font-size:13px;margin-bottom:16px}
+.code-btn:hover{color:#fff;border-color:#fff}
+.disclaimer{line-height:1.5}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;padding:10px 18px;border-radius:4px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:120;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:1180px){
+  .links{display:none;position:absolute;top:64px;left:4%;flex-direction:column;background:rgba(0,0,0,.94);border:1px solid #444;border-top:2px solid #fff;padding:14px 0;min-width:220px;gap:0}
+  .links.open{display:flex}
+  .links a{display:block;padding:10px 20px;text-align:center}
+  .menu-btn{display:block}
+  .hero-art{opacity:.3;width:80vw;right:-6%}
+  .foot-links{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){
+  .nav{gap:12px;height:60px}
+  .brand{font-size:20px} .brand small{display:none}
+  .nav-right{gap:10px}
+  .avatar{width:28px;height:28px;font-size:11px}
+  .search.open{position:absolute;left:12px;right:12px;top:10px}
+  .search.open input{width:100%}
+  .tag{font-size:12px;letter-spacing:2px}
+  .hero{min-height:80vh;padding-bottom:16vh}
+  .rating-flag{display:none}
+  .btn{font-size:15px;padding:8px 18px 8px 14px}
+  .people{grid-template-columns:1fr}
+  .sheet-hero{height:220px;padding:20px}
+  .sheet-body{grid-template-columns:1fr;padding:6px 20px 26px}
+  .info-body{padding:6px 20px 26px}
+  .top10{height:130px}.top10 .num{font-size:120px;-webkit-text-stroke:3px #595959;letter-spacing:-8px}.top10 .poster{width:92px;height:128px}
+  .filters input[type=search]{min-width:0;width:100%}
+  .cards{grid-template-columns:repeat(2,1fr);gap:6px}
+  .art b{font-size:13px}
+  .art .new{font-size:8px}
+  .filters label{flex:1 1 44%}
+  .filters input,.filters select{min-width:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Content Trends home">CONTENT TRENDS<small>ANALYSIS</small></a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="links">Browse</button>
+  <ul class="links" id="links">
+    <li><a href="#top" class="active">Home</a></li>
+    <li><a href="#trends">Trends</a></li>
+    <li><a href="#genres">Genres</a></li>
+    <li><a href="#global">Global</a></li>
+    <li><a href="#audience">Ratings &amp; Runtime</a></li>
+    <li><a href="#browse">Browse Titles</a></li>
+    <li><a href="#method">Method &amp; Quality</a></li>
+  </ul>
+  <div class="nav-right">
+    <form class="search" id="navSearch" role="search" autocomplete="off">
+      <button class="icon-btn" type="button" id="searchToggle" aria-label="Search titles">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      </button>
+      <label class="sr" for="navQuery">Search titles, people, genres</label>
+      <input id="navQuery" type="search" placeholder="Titles, people, genres">
+    </form>
+    <a class="avatar" href="https://fowziafaria1234-ops.github.io/fowziafaria1234-ops/" title="Faria Islam · portfolio" aria-label="Open Faria Islam's portfolio">FI</a>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-art" id="heroArt" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <div class="tag"><b>▌</b>DATA ANALYSIS · PORTFOLIO SERIES</div>
+    <h1>Netflix Content<br>Trends Analysis</h1>
+    <div class="meta"><span class="match" id="heroMatch"></span><span id="heroYears"></span><span class="badge">Python</span><span class="badge">Pandas</span><span id="heroTitles"></span></div>
+    <p class="lead" id="heroLead" aria-live="polite"></p>
+    <div class="hero-dots" id="heroDots" role="tablist" aria-label="Key insights"></div>
+    <div class="btns">
+      <button class="btn btn-play" id="playBtn" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M6 4v16l14-8z"/></svg><span id="playLabel">Play Insights</span>
+      </button>
+      <button class="btn btn-info" id="infoBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5" stroke-linecap="round"/></svg>More Info
+      </button>
+    </div>
+  </div>
+  <div class="rating-flag"><button class="mute" id="motionBtn" type="button" aria-label="Pause chart animation" title="Toggle animation">❚❚</button><div class="flag" id="flagText">Catalogue to 16 Jan 2021</div></div>
+</section>
+
+<main id="main">
+  <section class="row">
+    <div class="row-head"><h2>Catalogue at a glance</h2></div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section class="row" id="genres">
+    <div class="row-head">
+      <div><h2>Top 10 Genres in the Catalogue <span class="explore">Explore all ›</span></h2><p class="sub">Titles can carry up to three genres, so each title counts once per genre. Select a genre to browse its titles.</p></div>
+      <div class="seg" data-seg="genre" role="group" aria-label="Genre type"><button class="on" data-v="all">All</button><button data-v="movie">Movies</button><button data-v="tv">TV Shows</button></div>
+    </div>
+    <div class="slider">
+      <button class="arrow l" type="button" aria-label="Scroll left" data-scroll="-1">‹</button>
+      <div class="track" id="top10"></div>
+      <button class="arrow r" type="button" aria-label="Scroll right" data-scroll="1">›</button>
+    </div>
+  </section>
+
+  <section class="row" id="trends">
+    <div class="row-head">
+      <div><h2>How the catalogue grew</h2><p class="sub">Titles by the year they were added to Netflix (10 titles have no date and are excluded).</p></div>
+      <div class="seg" data-seg="type" role="group" aria-label="Content type"><button class="on" data-v="all">All</button><button data-v="movie">Movies</button><button data-v="tv">TV Shows</button></div>
+    </div>
+    <div class="grid">
+      <div class="panel"><h3>Titles added per year</h3><p class="sub">2021 covers 1–16 January only</p><div class="chart" id="cYearly"></div><div class="legend" data-legend></div><p class="insight" id="iYearly"></p></div>
+      <div class="panel"><h3>Year-on-year change &amp; TV share</h3><p class="sub">Growth in total titles added, and the share that were TV shows (2015–2020)</p><div class="chart" id="cYoy"></div><div class="legend"><span><i style="background:var(--red)"></i>YoY change in titles added</span><span><i style="background:var(--tv)"></i>TV share of additions</span></div><p class="insight" id="iYoy"></p></div>
+      <div class="panel"><h3>Release year of catalogue titles</h3><p class="sub">Original release year, 2000 onward (titles released before 2000 are excluded from this chart)</p><div class="chart" id="cRelease"></div><div class="legend" data-legend></div><p class="insight" id="iRelease"></p></div>
+      <div class="panel"><h3>Month titles were added</h3><p class="sub">All years combined</p><div class="chart" id="cMonth"></div><p class="insight" id="iMonth"></p></div>
+    </div>
+  </section>
+
+  <section class="row" id="global">
+    <div class="row-head"><div><h2>Where the content comes from</h2><p class="sub">Production countries (co-productions count for each country listed; 507 titles with no country excluded). Select a bar to browse that country.</p></div></div>
+    <div class="grid">
+      <div class="panel"><h3>Top 12 production countries</h3><div class="chart" id="cCountry"></div><div class="legend" data-legend></div><p class="insight" id="iCountry"></p></div>
+      <div class="panel"><h3>Most frequent directors &amp; cast</h3><p class="sub">Named credits only. Select a name to see their titles.</p>
+        <div class="people"><div><h3 style="font-size:14px;color:var(--muted)">Directors</h3><ol id="directors"></ol></div><div><h3 style="font-size:14px;color:var(--muted)">Cast</h3><ol id="cast"></ol></div></div>
+        <p class="insight" id="iPeople"></p></div>
+    </div>
+  </section>
+
+  <section class="row" id="audience">
+    <div class="row-head">
+      <div><h2>Ratings, audience &amp; runtime</h2><p class="sub">Maturity ratings grouped into audience bands so film (MPAA) and TV ratings can be compared</p></div>
+      <div class="seg" data-seg="type" role="group" aria-label="Content type"><button class="on" data-v="all">All</button><button data-v="movie">Movies</button><button data-v="tv">TV Shows</button></div>
+    </div>
+    <div class="grid">
+      <div class="panel"><h3>Maturity ratings</h3><div class="chart" id="cRating"></div><div class="legend" data-legend></div><p class="insight" id="iRating"></p></div>
+      <div class="panel"><h3>Audience bands</h3><div class="chart" id="cAudience"></div><div class="legend" data-legend></div><p class="insight" id="iAudience"></p></div>
+      <div class="panel"><h3>Movie runtime distribution</h3><p class="sub">Minutes, 15-minute bins</p><div class="chart" id="cDuration"></div><p class="insight" id="iDuration"></p></div>
+      <div class="panel"><h3>TV shows by number of seasons</h3><div class="chart" id="cSeasons"></div><p class="insight" id="iSeasons"></p></div>
+    </div>
+  </section>
+
+  <section class="row" id="browse">
+    <div class="row-head"><div><h2>Browse all titles</h2><p class="sub">Every title in the dataset. Select any title to see its details.</p></div></div>
+    <form class="filters" id="filters" onsubmit="return false">
+      <label>Search<input type="search" id="fQuery" placeholder="Title, cast, director, country…"></label>
+      <label>Type<select id="fType"><option value="">All</option><option value="0">Movies</option><option value="1">TV Shows</option></select></label>
+      <label>Genre<select id="fGenre"><option value="">All genres</option></select></label>
+      <label>Rating<select id="fRating"><option value="">All ratings</option></select></label>
+      <label>Released from<select id="fFrom"></select></label>
+      <label>to<select id="fTo"></select></label>
+      <label>Sort by<select id="fSort"><option value="added">Recently added</option><option value="newest">Release year (newest)</option><option value="oldest">Release year (oldest)</option><option value="az">Title A–Z</option></select></label>
+      <button class="ghost" type="button" id="fReset">Reset</button>
+      <button class="ghost" type="button" id="fRandom">🎲 Surprise me</button>
+    </form>
+    <p class="count" id="count" aria-live="polite"></p>
+    <div class="cards" id="cards"></div>
+    <button class="btn btn-info more" type="button" id="moreBtn">Show more titles</button>
+  </section>
+
+  <section class="row" id="method">
+    <div class="row-head"><div><h2>Method &amp; data quality</h2><p class="sub">How the numbers were produced, and what is missing in the source data</p></div></div>
+    <div class="steps" style="margin-bottom:12px">
+      <div class="step"><b>Load &amp; audit</b>7,787 rows from the Kaggle Netflix titles extract. Missing values measured for every column before any change.</div>
+      <div class="step"><b>Clean</b>Whitespace trimmed, <code>date_added</code> parsed, missing country/director labelled “Unknown” rather than dropped.</div>
+      <div class="step"><b>Engineer features</b>Runtime split into minutes (films) and seasons (TV), ratings mapped to audience bands, genres and countries exploded to one row each.</div>
+      <div class="step"><b>Aggregate &amp; test</b>Yearly, genre, country and rating metrics built with Pandas; unit tests reconcile every total back to the raw row count.</div>
+    </div>
+    <div class="grid">
+      <div class="panel"><h3>Missing values in the raw extract</h3><table><thead><tr><th>Column</th><th class="n">Missing</th><th class="n">%</th><th></th></tr></thead><tbody id="quality"></tbody></table></div>
+      <div class="panel"><h3>Reading these results</h3><div class="insight" style="border:0;padding:0;margin:0" id="caveats"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="socials"><a href="https://github.com/fowziafaria1234-ops" target="_blank" rel="noopener">GitHub</a><a href="https://www.linkedin.com/in/faria-islam-1a2338349" target="_blank" rel="noopener">LinkedIn</a><a href="mailto:fowziafaria1234@gmail.com">Email</a></div>
+  <ul class="foot-links">
+    <li><a href="https://fowziafaria1234-ops.github.io/fowziafaria1234-ops/" target="_blank" rel="noopener">Portfolio home</a></li>
+    <li><a href="https://github.com/fowziafaria1234-ops/netflix-content-trends-analysis" target="_blank" rel="noopener">Project repository</a></li>
+    <li><a href="https://www.kaggle.com/datasets/shivamb/netflix-shows" target="_blank" rel="noopener">Dataset source (Kaggle)</a></li>
+    <li><button type="button" data-open-info>About this project</button></li>
+    <li><a href="https://fowziafaria1234-ops.github.io/operational-kpi-dashboard/dashboard/" target="_blank" rel="noopener">Operational KPI Dashboard</a></li>
+    <li><a href="https://fowziafaria1234-ops.github.io/nyc-school-performance-analysis/dashboard/" target="_blank" rel="noopener">NYC School Performance</a></li>
+    <li><a href="https://fowziafaria1234-ops.github.io/student-mental-health-sql-analysis/dashboard/" target="_blank" rel="noopener">Student Mental Health SQL</a></li>
+    <li><button type="button" id="copyLink">Copy link to this dashboard</button></li>
+  </ul>
+  <button class="code-btn" type="button" id="topBtn">↑ Back to top</button>
+  <p class="disclaimer">Portfolio analysis by Faria Islam. Independent project, not affiliated with or endorsed by Netflix, Inc. Data: “Netflix Movies and TV Shows” (Shivam Bansal, Kaggle), a catalogue snapshot to 16 January 2021.</p>
+</footer>
+
+<div class="modal" id="titleModal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="sheet">
+    <div class="sheet-hero" id="mHero"><button class="close" type="button" data-close aria-label="Close">✕</button><h2 id="mTitle"></h2></div>
+    <div class="sheet-body">
+      <div><div class="meta" id="mMeta"></div><p class="desc" id="mDesc"></p></div>
+      <div class="side" id="mSide"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+  <div class="sheet">
+    <div class="sheet-hero" style="background:radial-gradient(ellipse at 70% 20%,rgba(229,9,20,.6),transparent 60%),#000"><button class="close" type="button" data-close aria-label="Close">✕</button><h2 id="iTitle">About this project</h2></div>
+    <div class="info-body" id="infoBody"></div>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/*__DATA__*/
+</script>
+<script>
+(function(){
+"use strict";
+const D = window.NETFLIX_DATA, K = D.kpis;
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const fmt = n => n == null ? "–" : Number(n).toLocaleString("en-GB");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RED = "#e50914", TV = "#f5f5f1";
+const state = {type:"all", genreType:"all", animate:true};
+const SVGNS = "http://www.w3.org/2000/svg";
+
+/* titles: [id,title,type,year,rating,duration,genres,country,director,cast,added,desc] */
+const T = D.titles.map((r,i) => ({i, id:r[0], title:r[1], type:r[2], year:r[3], rating:r[4], duration:r[5],
+  genres:r[6].split(", ").filter(Boolean), country:r[7], director:r[8], cast:r[9], added:r[10], desc:r[11],
+  addedTs: r[10] ? Date.parse(r[10]) : 0, countries:r[7].split(",").map(c => c.trim()), hay:(r[1]+" "+r[7]+" "+r[8]+" "+r[9]+" "+r[6]).toLowerCase()}));
+
+/* ---------- utilities ---------- */
+const tip = $("#tip");
+function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1; moveTip(e); }
+function moveTip(e){ const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8); const y = Math.max(8, e.clientY - tip.offsetHeight - 12); tip.style.left = x+"px"; tip.style.top = y+"px"; }
+function hideTip(){ tip.style.opacity = 0; }
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+function el(tag, attrs, parent){ const n = document.createElementNS(SVGNS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+function niceMax(v){ if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); const m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+function hashHue(s){ let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+function artStyle(t){
+  const h = hashHue(t.id + t.title), hue = t.type ? (200 + h % 60) : (h % 2 ? (350 + h % 20) % 360 : 10 + h % 25);
+  const ang = 110 + h % 90;
+  return `background:linear-gradient(${ang}deg,hsl(${hue} 70% ${14 + h % 10}%),hsl(${(hue + 25) % 360} 60% ${32 + h % 14}%) 60%,hsl(${(hue + 50) % 360} 70% 10%))`;
+}
+function series(obj){
+  if (state.type === "movie") return [{name:"Movies", color:RED, values:obj.movie}];
+  if (state.type === "tv") return [{name:"TV Shows", color:TV, values:obj.tv}];
+  return [{name:"Movies", color:RED, values:obj.movie}, {name:"TV Shows", color:TV, values:obj.tv}];
+}
+function legendFor(box, s){ const lg = box.parentElement.querySelector("[data-legend]"); if (lg) lg.innerHTML = s.map(x => `<span><i style="background:${x.color}"></i>${x.name}</span>`).join(""); }
+
+/* ---------- charts ---------- */
+function barChart(id, labels, ser, opt = {}){
+  const box = document.getElementById(id); box.innerHTML = ""; legendFor(box, ser);
+  const W = 560, H = opt.h || 300, m = {t:14, r:10, b:opt.rot ? 46 : 28, l:44};
+  const svg = el("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":opt.label || id}, box);
+  const totals = labels.map((_, i) => ser.reduce((a, s) => a + (s.values[i] || 0), 0));
+  const max = niceMax(Math.max(...totals)), iw = W - m.l - m.r, ih = H - m.t - m.b;
+  for (let k = 0; k <= 4; k++){ const v = max * k / 4, y = m.t + ih - ih * k / 4;
+    el("line", {x1:m.l, x2:W - m.r, y1:y, y2:y, stroke:"#2c2c2c"}, svg);
+    const t = el("text", {x:m.l - 8, y:y + 4, "text-anchor":"end", fill:"#808080", "font-size":11}, svg); t.textContent = v >= 1000 ? (v/1000) + "k" : v; }
+  const bw = iw / labels.length, gap = Math.max(1.5, bw * .18);
+  const every = Math.ceil(labels.length / (opt.maxLabels || 16));
+  labels.forEach((lab, i) => {
+    let base = 0; const x = m.l + i * bw + gap / 2;
+    ser.forEach(s => { const v = s.values[i] || 0; if (!v) return; const h = ih * v / max, y = m.t + ih - ih * (base + v) / max;
+      const r = el("rect", {class:"bar", x, width:Math.max(1, bw - gap), y: state.animate ? m.t + ih : y, height: state.animate ? 0 : h, fill:s.color, rx:1.5}, svg);
+      if (state.animate) requestAnimationFrame(() => { r.style.transition = `y .8s ${i*18}ms cubic-bezier(.2,.8,.2,1), height .8s ${i*18}ms cubic-bezier(.2,.8,.2,1)`; r.setAttribute("y", y); r.setAttribute("height", h); });
+      const html = `<b>${esc(opt.tipLabel ? opt.tipLabel(lab) : lab)}</b>${ser.length > 1 ? esc(s.name) + ": " : ""}${fmt(v)} titles${ser.length > 1 ? `<br>Total: ${fmt(totals[i])}` : ""}`;
+      r.addEventListener("mouseenter", e => showTip(e, html)); r.addEventListener("mousemove", moveTip); r.addEventListener("mouseleave", hideTip);
+      if (opt.onClick){ r.style.cursor = "pointer"; r.addEventListener("click", () => opt.onClick(lab, s)); }
+      base += v; });
+    if (i % every === 0){ const tx = m.l + i * bw + bw / 2, ty = H - m.b + 16;
+      const t = el("text", {x:tx, y:ty, "text-anchor":opt.rot ? "end" : "middle", fill:"#b3b3b3", "font-size":11, transform:opt.rot ? `rotate(-40 ${tx} ${ty})` : ""}, svg); t.textContent = lab; }
+  });
+}
+function hbarChart(id, labels, ser, opt = {}){
+  const box = document.getElementById(id); box.innerHTML = ""; legendFor(box, ser);
+  const row = 26, W = 560, m = {t:4, r:52, b:4, l:opt.left || 150}, H = m.t + m.b + row * labels.length;
+  const svg = el("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":opt.label || id}, box);
+  const totals = labels.map((_, i) => ser.reduce((a, s) => a + (s.values[i] || 0), 0)), max = Math.max(...totals), iw = W - m.l - m.r;
+  labels.forEach((lab, i) => {
+    const y = m.t + i * row; let base = 0;
+    const t = el("text", {x:m.l - 10, y:y + row / 2 + 4, "text-anchor":"end", fill:"#e5e5e5", "font-size":12.5}, svg); t.textContent = lab;
+    ser.forEach(s => { const v = s.values[i] || 0; if (!v) return; const w = iw * v / max;
+      const r = el("rect", {class:"bar", x:m.l + iw * base / max, y:y + 4, height:row - 8, width: state.animate ? 0 : w, fill:s.color, rx:2}, svg);
+      if (state.animate) requestAnimationFrame(() => { r.style.transition = `width .9s ${i*40}ms cubic-bezier(.2,.8,.2,1)`; r.setAttribute("width", w); });
+      const html = `<b>${esc(lab)}</b>${ser.length > 1 ? esc(s.name) + ": " : ""}${fmt(v)} titles`;
+      r.addEventListener("mouseenter", e => showTip(e, html)); r.addEventListener("mousemove", moveTip); r.addEventListener("mouseleave", hideTip);
+      if (opt.onClick){ r.style.cursor = "pointer"; r.addEventListener("click", () => opt.onClick(lab, s)); }
+      base += v; });
+    const vt = el("text", {x:m.l + iw * totals[i] / max + 6, y:y + row / 2 + 4, fill:"#b3b3b3", "font-size":12}, svg); vt.textContent = fmt(totals[i]);
+  });
+}
+function yoyChart(){
+  const Y = D.yearly, idx = Y.labels.map((y, i) => i).filter(i => +Y.labels[i] >= 2015 && +Y.labels[i] <= 2020);
+  const box = $("#cYoy"); box.innerHTML = "";
+  const W = 560, H = 300, m = {t:20, r:46, b:28, l:46}, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const svg = el("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Year-on-year change and TV share"}, box);
+  const yo = idx.map(i => Y.yoy_pct[i]), sh = idx.map(i => Y.tv_share_pct[i]);
+  const hi = niceMax(Math.max(...yo)), lo = Math.min(0, Math.floor(Math.min(...yo) / 50) * 50);
+  const ys = v => m.t + ih - ih * (v - lo) / (hi - lo), ys2 = v => m.t + ih - ih * v / 100;
+  for (let k = 0; k <= 4; k++){ const v = lo + (hi - lo) * k / 4, y = ys(v);
+    el("line", {x1:m.l, x2:W - m.r, y1:y, y2:y, stroke: v === 0 ? "#555" : "#2c2c2c"}, svg);
+    el("text", {x:m.l - 8, y:y + 4, "text-anchor":"end", fill:"#808080", "font-size":11}, svg).textContent = Math.round(v) + "%";
+    el("text", {x:W - m.r + 8, y:m.t + ih - ih * k / 4 + 4, fill:"#808080", "font-size":11}, svg).textContent = (25 * k) + "%"; }
+  if (lo < 0) el("line", {x1:m.l, x2:W - m.r, y1:ys(0), y2:ys(0), stroke:"#666"}, svg);
+  const bw = iw / idx.length;
+  idx.forEach((i, j) => { const v = Y.yoy_pct[i], x = m.l + j * bw + bw * .2, y0 = ys(0), y1 = ys(v);
+    const r = el("rect", {class:"bar", x, width:bw * .6, y:Math.min(y0, y1), height:Math.abs(y1 - y0), fill: v < 0 ? "#7a0a10" : RED, rx:2}, svg);
+    const html = `<b>${Y.labels[i]}</b>Added: ${fmt(Y.total[i])} (prev. ${fmt(Y.total[i-1])})<br>YoY change: ${v > 0 ? "+" : ""}${v}%<br>TV share: ${Y.tv_share_pct[i]}%`;
+    r.addEventListener("mouseenter", e => showTip(e, html)); r.addEventListener("mousemove", moveTip); r.addEventListener("mouseleave", hideTip);
+    el("text", {x:x + bw * .3, y:H - m.b + 16, "text-anchor":"middle", fill:"#b3b3b3", "font-size":11}, svg).textContent = Y.labels[i];
+    el("text", {x:x + bw * .3, y:(v >= 0 ? y1 - 6 : y1 + 14), "text-anchor":"middle", fill:"#e5e5e5", "font-size":11, "font-weight":700}, svg).textContent = (v > 0 ? "+" : "") + v + "%";
+  });
+  const pts = idx.map((i, j) => [m.l + j * bw + bw / 2, ys2(Y.tv_share_pct[i])]);
+  const path = el("path", {d:"M" + pts.map(p => p.join(",")).join("L"), fill:"none", stroke:TV, "stroke-width":2.5, "stroke-dasharray":"5 4"}, svg);
+  pts.forEach((p, j) => { const c = el("circle", {cx:p[0], cy:p[1], r:5, fill:TV, stroke:"#141414", "stroke-width":2}, svg);
+    const i = idx[j], html = `<b>${Y.labels[i]}</b>TV share of additions: ${Y.tv_share_pct[i]}%<br>${fmt(Y.tv[i])} TV shows of ${fmt(Y.total[i])}`;
+    c.addEventListener("mouseenter", e => showTip(e, html)); c.addEventListener("mousemove", moveTip); c.addEventListener("mouseleave", hideTip); });
+}
+
+/* ---------- aggregates computed from titles (used for filtered views) ---------- */
+function topGenres(kind){
+  if (kind === "movie") return D.genres_movie; if (kind === "tv") return D.genres_tv;
+  const c = {}; T.forEach(t => t.genres.forEach(g => c[g] = (c[g] || 0) + 1));
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 10);
+}
+
+/* ---------- renderers ---------- */
+function renderKpis(){
+  const items = [
+    ["Titles analysed", fmt(K.titles), `${K.first_added} – ${K.last_added} catalogue`],
+    ["Movies", fmt(K.movies), `${K.movie_share_pct}% of the catalogue`],
+    ["TV shows", fmt(K.tv), `${(100 - K.movie_share_pct).toFixed(1)}% of the catalogue`],
+    ["Peak year added", K.peak_year, `${fmt(K.peak_year_titles)} titles added in ${K.peak_year}`],
+    ["Countries", K.countries, `${K.genres} distinct genre labels`],
+    ["Median movie", K.median_movie_min + " min", `Mean ${K.mean_movie_min} minutes`],
+    ["One-season shows", K.single_season_pct + "%", "of TV shows have a single season"],
+    ["Adult-rated", K.adult_pct + "%", "TV-MA, R or NC-17"],
+  ];
+  $("#kpis").innerHTML = items.map(([a, b, c]) => `<article class="kpi"><span>${a}</span><strong>${b}</strong><small>${c}</small></article>`).join("");
+}
+function renderTop10(){
+  const list = topGenres(state.genreType);
+  $("#top10").innerHTML = list.map(([g, n], i) => {
+    const h = hashHue(g), hue = (h % 2 ? 355 : 8) + (h % 18);
+    return `<button class="top10" type="button" data-genre="${esc(g)}" aria-label="Rank ${i+1}: ${esc(g)}, ${fmt(n)} titles"><span class="num">${i+1}</span>
+      <span class="poster" style="background:linear-gradient(${140 + h % 60}deg,hsl(${hue} 80% ${20 + h % 12}%),#0b0b0b 85%)"><b>${esc(g)}</b><span><em>${fmt(n)}</em><small>titles</small></span></span></button>`;
+  }).join("");
+  $("#top10").scrollLeft = 0; updateArrows();
+}
+function updateArrows(){
+  const tr = $("#top10"), [l, r] = $$(".slider .arrow");
+  l.disabled = tr.scrollLeft <= 4; r.disabled = tr.scrollLeft + tr.clientWidth >= tr.scrollWidth - 4;
+}
+function renderCharts(){
+  const Y = D.yearly;
+  barChart("cYearly", Y.labels, series(Y), {label:"Titles added per year", onClick:(lab) => { filterBrowse({addedYear:lab}); }});
+  yoyChart();
+  barChart("cRelease", D.release.labels, series(D.release), {label:"Titles by release year", maxLabels:11, onClick:(lab) => filterBrowse({from:lab, to:lab})});
+  barChart("cMonth", D.monthly.labels, [{name:"All", color:RED, values:D.monthly.values}], {label:"Titles added by month"});
+  hbarChart("cCountry", D.countries.labels, series(D.countries), {label:"Top production countries", left:120, onClick:(lab) => filterBrowse({country:lab})});
+  const rs = series(D.ratings);
+  barChart("cRating", D.ratings.labels, rs, {label:"Titles by maturity rating", rot:true, onClick:(lab) => filterBrowse({rating:lab})});
+  hbarChart("cAudience", D.audience.labels, series(D.audience), {label:"Titles by audience band", left:90});
+  barChart("cDuration", D.duration.labels, [{name:"Movies", color:RED, values:D.duration.values}], {label:"Movie runtime distribution", rot:true, tipLabel:l => l + " minutes"});
+  barChart("cSeasons", D.seasons.map(s => s[0]), [{name:"TV Shows", color:TV, values:D.seasons.map(s => s[1])}], {label:"TV shows by seasons", tipLabel:l => l + (l === "1" ? " season" : " seasons")});
+  $$(".chart svg").forEach(s => s.addEventListener("mouseleave", hideTip));
+}
+function pct(a, b){ return (a / b * 100).toFixed(1) + "%"; }
+function renderInsights(){
+  const Y = D.yearly, iy = y => Y.labels.indexOf(String(y));
+  $("#iYearly").innerHTML = `<b>${fmt(K.added_2016_2020)} titles (${K.added_2016_2020_pct}%)</b> were added between 2016 and 2020. Additions peaked in <b>${K.peak_year} at ${fmt(K.peak_year_titles)}</b>, then eased to ${fmt(K.last_full_year_titles)} in ${K.last_full_year}. Select a bar to browse that year's additions.`;
+  $("#iYoy").innerHTML = `Growth was explosive in 2016 (<b>+${Y.yoy_pct[iy(2016)]}%</b>) and slowed each year after, turning negative in 2020 (<b>${Y.yoy_pct[iy(2020)]}%</b>). Meanwhile TV's share of new additions rose from ${Y.tv_share_pct[iy(2018)]}% in 2018 to <b>${Y.tv_share_pct[iy(2020)]}%</b> in 2020.`;
+  const rl = D.release, r18 = rl.labels.indexOf("2018");
+  $("#iRelease").innerHTML = `The catalogue is overwhelmingly recent: <b>${K.released_2015_plus_pct}%</b> of titles were released in 2015 or later, and the median release year is <b>${K.median_release_year}</b>. ${fmt(rl.movie[r18] + rl.tv[r18])} titles date from 2018, the most of any release year.`;
+  const mv = D.monthly.values, mi = mv.indexOf(Math.max(...mv)), lo = mv.indexOf(Math.min(...mv));
+  $("#iMonth").innerHTML = `<b>${D.monthly.labels[mi]}</b> saw the most additions (${fmt(mv[mi])}) and <b>${D.monthly.labels[lo]}</b> the fewest (${fmt(mv[lo])}). Taken together, October–December and January are the busiest stretch of the year.`;
+  const C = D.countries, us = C.movie[0] + C.tv[0], ind = C.movie[1] + C.tv[1];
+  $("#iCountry").innerHTML = `<b>${C.labels[0]}</b> is credited on ${fmt(us)} titles. <b>India</b> is second (${fmt(ind)}), and ${pct(C.movie[1], ind)} of its titles are films. South Korea and Japan lean the other way, with more TV shows than movies.`;
+  $("#iPeople").innerHTML = `${fmt(K.missing_director)} titles (${pct(K.missing_director, K.titles)}) have no director listed; 2,226 of these are TV shows, where directors are rarely credited. Stand-up specials drive the top director names (Jan Suter, Raúl Campos, Marcus Raboy).`;
+  const R = D.ratings, a = D.audience;
+  $("#iRating").innerHTML = `<b>TV-MA</b> is the most common rating (${fmt(R.movie[0] + R.tv[0])} titles), followed by TV-14 (${fmt(R.movie[1] + R.tv[1])}). Most films carry TV-style ratings rather than MPAA ratings.`;
+  $("#iAudience").innerHTML = `Adult-rated content makes up <b>${K.adult_pct}%</b> of the catalogue. Kids and older-kids bands together account for ${pct(a.movie[0] + a.tv[0] + a.movie[1] + a.tv[1], K.titles)}.`;
+  const dv = D.duration.values, di = dv.indexOf(Math.max(...dv));
+  $("#iDuration").innerHTML = `The median film runs <b>${K.median_movie_min} minutes</b>. The ${D.duration.labels[di]} minute band is the largest (${fmt(dv[di])} films); only ${fmt(dv.slice(-6).reduce((x, y) => x + y, 0))} films run 150 minutes or more.`;
+  $("#iSeasons").innerHTML = `<b>${K.single_season_pct}%</b> of TV shows (${fmt(D.seasons[0][1])}) have only one season, consistent with a strategy of trialling many new series. Just ${fmt(D.seasons[5][1])} run to six seasons or more.`;
+}
+function renderPeople(){
+  const li = (arr, field) => arr.map(([n, c]) => `<li><button type="button" data-person="${esc(n)}">${esc(n)}</button><span>${c}</span></li>`).join("");
+  $("#directors").innerHTML = li(D.directors); $("#cast").innerHTML = li(D.cast);
+}
+function renderQuality(){
+  const rows = D.quality.filter(q => q.missing > 0).sort((a, b) => b.missing - a.missing);
+  $("#quality").innerHTML = rows.map(q => `<tr><td>${esc(q.column)}</td><td class="n">${fmt(q.missing)}</td><td class="n">${q.missing_pct.toFixed(1)}</td><td><div class="meter"><i style="width:${q.missing_pct}%"></i></div></td></tr>`).join("") +
+    `<tr><td colspan="4" style="color:#808080">All other columns (show_id, type, title, release_year, duration, listed_in, description) are 100% complete. No duplicate show IDs.</td></tr>`;
+  $("#caveats").innerHTML = `<p><b>Snapshot, not history.</b> The data lists what was on Netflix (collected via the Flixable search engine) on ${K.last_added}. Titles removed before then are not included, so earlier years are undercounted.</p>
+    <p><b>2021 is partial.</b> It covers 1–16 January only, so the 2021 drop is not a real decline.</p>
+    <p><b>Multi-value fields.</b> Genre and country counts sum to more than ${fmt(K.titles)} because titles can have several of each.</p>
+    <p><b>Missing values kept.</b> Missing country and director are labelled “Unknown” and excluded from rankings rather than guessed.</p>`;
+}
+
+/* ---------- hero ---------- */
+const HERO = [
+  `${fmt(K.titles)} titles, ${fmt(K.movies)} movies and ${fmt(K.tv)} TV shows, from ${K.countries} countries. Explore how Netflix built its catalogue between ${K.first_added.slice(-4)} and ${K.last_added.slice(-4)}.`,
+  `${K.added_2016_2020_pct}% of the catalogue was added in just five years (2016–2020). Additions peaked in ${K.peak_year} with ${fmt(K.peak_year_titles)} titles.`,
+  `TV's share of new additions climbed from ${D.yearly.tv_share_pct[D.yearly.labels.indexOf("2018")]}% in 2018 to ${D.yearly.tv_share_pct[D.yearly.labels.indexOf("2020")]}% in 2020, while total additions began to level off.`,
+  `International content leads: "International Movies" is the #1 genre label, and India is the second-largest production country after the United States.`,
+  `${K.single_season_pct}% of TV shows have a single season, and the median movie runs ${K.median_movie_min} minutes.`,
+];
+let heroI = 0, heroTimer = null;
+function setHero(i){
+  heroI = (i + HERO.length) % HERO.length; const p = $("#heroLead"); p.style.opacity = 0;
+  setTimeout(() => { p.textContent = HERO[heroI]; p.style.opacity = 1; }, 180);
+  $$("#heroDots button").forEach((b, j) => { b.classList.toggle("on", j === heroI); b.setAttribute("aria-selected", j === heroI); });
+}
+function setPlaying(on){
+  clearInterval(heroTimer); heroTimer = null;
+  $("#playBtn").setAttribute("aria-pressed", on);
+  $("#playLabel").textContent = on ? "Pause" : "Play Insights";
+  $("#playIcon").innerHTML = on ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M6 4v16l14-8z"/>';
+  if (on) heroTimer = setInterval(() => setHero(heroI + 1), 4200);
+}
+function renderHero(){
+  $("#heroMatch").textContent = "100% reconciled"; $("#heroYears").textContent = `${K.first_added.slice(-4)}–${K.last_added.slice(-4)}`;
+  $("#heroTitles").textContent = `${fmt(K.titles)} titles`;
+  $("#heroDots").innerHTML = HERO.map((_, i) => `<button type="button" role="tab" aria-label="Insight ${i+1}"></button>`).join("");
+  $$("#heroDots button").forEach((b, i) => b.addEventListener("click", () => { setHero(i); if (heroTimer) setPlaying(true); }));
+  setHero(0);
+  const Y = D.yearly, max = Math.max(...Y.total);
+  $("#heroArt").innerHTML = Y.labels.map((y, i) => `<i title="${y}: ${fmt(Y.total[i])} titles" class="${i % 2 ? "" : ""}" data-h="${Math.max(1.5, Y.total[i] / max * 100)}"></i>`).join("");
+  requestAnimationFrame(() => setTimeout(() => $$("#heroArt i").forEach(b => b.style.height = b.dataset.h + "%"), 120));
+}
+function infoHtml(){
+  return `<p>This dashboard presents a Python analysis of <b>${fmt(K.titles)} Netflix titles</b>, a public catalogue extract covering ${K.first_added} to ${K.last_added}. It looks at how the catalogue grew, which genres and countries dominate, how content is rated and how long it runs.</p>
+  <h3>Questions answered</h3><p>When did Netflix add most of its catalogue? Is the mix shifting towards TV? Which genres and countries lead? What does a typical film or series look like?</p>
+  <h3>Tools</h3><p>Python, Pandas and NumPy for cleaning and feature engineering; Matplotlib for static report charts; a dependency-free HTML, CSS and JavaScript dashboard for the interactive view. Every figure is generated by <code>src/run_pipeline.py</code> and reconciled with unit tests.</p>
+  <h3>Data source</h3><p>“Netflix Movies and TV Shows” by Shivam Bansal on Kaggle (${fmt(D.source.rows)} rows, 12 columns). ${esc(D.source.note)}</p>
+  <p class="btns" style="margin-top:22px"><a class="btn btn-play" href="https://github.com/fowziafaria1234-ops/netflix-content-trends-analysis" target="_blank" rel="noopener">View code on GitHub</a><button class="btn btn-info" type="button" data-close data-go="#method">Method &amp; data quality</button></p>`;
+}
+
+/* ---------- browse ---------- */
+const PAGE = 48; let shown = PAGE, filtered = [];
+const years = [...new Set(T.map(t => t.year))].sort((a, b) => a - b);
+function fillSelects(){
+  const g = [...new Set(T.flatMap(t => t.genres))].sort();
+  $("#fGenre").innerHTML += g.map(x => `<option>${esc(x)}</option>`).join("");
+  $("#fRating").innerHTML += D.ratings.labels.map(x => `<option>${esc(x)}</option>`).join("");
+  $("#fFrom").innerHTML = years.map(y => `<option${y === years[0] ? " selected" : ""}>${y}</option>`).join("");
+  $("#fTo").innerHTML = years.map(y => `<option${y === years[years.length-1] ? " selected" : ""}>${y}</option>`).join("");
+}
+let addedYear = "", country = "";
+function applyFilters(){
+  const q = $("#fQuery").value.trim().toLowerCase(), ty = $("#fType").value, g = $("#fGenre").value, r = $("#fRating").value;
+  let a = +$("#fFrom").value, b = +$("#fTo").value; if (a > b) [a, b] = [b, a];
+  const words = q.split(/\s+/).filter(Boolean);
+  filtered = T.filter(t => (!ty || t.type === +ty) && (!g || t.genres.includes(g)) && (!r || t.rating === r) &&
+    t.year >= a && t.year <= b && (!addedYear || t.added.endsWith(addedYear)) && (!country || t.countries.includes(country)) && words.every(w => t.hay.includes(w)));
+  const s = $("#fSort").value;
+  const cmp = {added:(x, y) => y.addedTs - x.addedTs || x.title.localeCompare(y.title), newest:(x, y) => y.year - x.year || x.title.localeCompare(y.title),
+    oldest:(x, y) => x.year - y.year || x.title.localeCompare(y.title), az:(x, y) => x.title.localeCompare(y.title, "en", {numeric:true})}[s];
+  filtered.sort(cmp); shown = PAGE; renderCards();
+}
+function renderCards(){
+  const list = filtered.slice(0, shown);
+  $("#cards").innerHTML = list.length ? list.map(t => `<button class="card" type="button" data-i="${t.i}" aria-label="${esc(t.title)}, ${t.type ? "TV show" : "movie"}, ${t.year}">
+    <span class="art" style="${artStyle(t)}"><span class="kind ${t.type ? "tvk" : ""}">${t.type ? "SERIES" : "FILM"}</span>${t.addedTs >= Date.parse("01 Nov 2020") ? '<span class="new">RECENTLY ADDED</span>' : ""}
+    <b>${esc(t.title)}</b><small>${t.year} · ${esc(t.rating)} · ${esc(t.duration)}</small></span></button>`).join("")
+    : `<div class="empty">No titles match these filters. <button class="linkish" type="button" id="emptyReset">Reset filters</button></div>`;
+  const extra = (addedYear ? ` added in ${addedYear} <button class="linkish" type="button" id="clearYear">clear year</button>` : "") + (country ? ` from ${esc(country)} <button class="linkish" type="button" id="clearCountry">clear country</button>` : "");
+  $("#count").innerHTML = `Showing ${fmt(list.length)} of ${fmt(filtered.length)} titles${extra}`;
+  $("#moreBtn").style.display = filtered.length > shown ? "" : "none";
+}
+function resetFilters(){
+  $("#fQuery").value = ""; $("#fType").value = ""; $("#fGenre").value = ""; $("#fRating").value = ""; $("#fSort").value = "added";
+  $("#fFrom").value = years[0]; $("#fTo").value = years[years.length-1]; addedYear = ""; country = ""; applyFilters();
+}
+function filterBrowse(o){
+  resetFiltersQuiet();
+  if (o.q != null) $("#fQuery").value = o.q; if (o.genre) $("#fGenre").value = o.genre; if (o.rating) $("#fRating").value = o.rating;
+  if (o.from){ $("#fFrom").value = o.from; $("#fTo").value = o.to; $("#fSort").value = "az"; }
+  if (o.addedYear) addedYear = String(o.addedYear);
+  if (o.country) country = o.country;
+  if (o.type != null) $("#fType").value = o.type;
+  applyFilters(); document.getElementById("browse").scrollIntoView();
+}
+function resetFiltersQuiet(){ $("#fQuery").value = ""; $("#fType").value = ""; $("#fGenre").value = ""; $("#fRating").value = ""; $("#fSort").value = "added"; $("#fFrom").value = years[0]; $("#fTo").value = years[years.length-1]; addedYear = ""; country = ""; }
+
+/* ---------- modals ---------- */
+let lastFocus = null;
+function openModal(m){ lastFocus = document.activeElement; m.classList.add("open"); document.body.style.overflow = "hidden"; m.querySelector("[data-close]").focus(); }
+function closeModal(m){ m.classList.remove("open"); if (!$$(".modal.open").length) document.body.style.overflow = ""; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function openTitle(i){
+  const t = T[i]; $("#mTitle").textContent = t.title; $("#mHero").style.cssText = artStyle(t);
+  $("#mMeta").innerHTML = `<span class="match">${t.type ? "TV Show" : "Movie"}</span><span>${t.year}</span><span class="badge">${esc(t.rating)}</span><span>${esc(t.duration)}</span>${t.added ? `<span>Added ${esc(t.added)}</span>` : ""}`;
+  $("#mDesc").textContent = t.desc;
+  const people = (s, label) => s ? `<p><span>${label}: </span>${s.split(", ").map(n => `<button class="linkish" type="button" data-person="${esc(n)}">${esc(n)}</button>`).join(", ")}</p>` : "";
+  $("#mSide").innerHTML = people(t.cast, "Cast") + people(t.director, "Director") +
+    `<p><span>Genres: </span>${t.genres.map(g => `<button class="linkish" type="button" data-genre="${esc(g)}">${esc(g)}</button>`).join(", ")}</p>
+     <p><span>Country: </span>${esc(t.country)}</p><p><span>ID: </span>${esc(t.id)}</p>`;
+  openModal($("#titleModal"));
+}
+
+/* ---------- events ---------- */
+function bind(){
+  const nav = $("#nav"); const onScroll = () => {
+    nav.classList.toggle("solid", scrollY > 40);
+    let cur = "#top"; $$(".links a").forEach(a => { const s = document.querySelector(a.getAttribute("href")); if (s && s.getBoundingClientRect().top < 120) cur = a.getAttribute("href"); });
+    $$(".links a").forEach(a => a.classList.toggle("active", a.getAttribute("href") === cur)); };
+  addEventListener("scroll", onScroll, {passive:true}); onScroll();
+  $("#menuBtn").addEventListener("click", e => { const o = $("#links").classList.toggle("open"); e.currentTarget.setAttribute("aria-expanded", o); });
+  $$(".links a").forEach(a => a.addEventListener("click", () => { $("#links").classList.remove("open"); $("#menuBtn").setAttribute("aria-expanded", false); }));
+
+  const sf = $("#navSearch"), sq = $("#navQuery");
+  $("#searchToggle").addEventListener("click", () => { if (sf.classList.contains("open") && sq.value.trim()) return goSearch(); sf.classList.toggle("open"); if (sf.classList.contains("open")) sq.focus(); });
+  const goSearch = () => { filterBrowse({q:sq.value.trim()}); };
+  sf.addEventListener("submit", e => { e.preventDefault(); goSearch(); });
+  let deb; sq.addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(() => { if (sq.value.trim().length >= 2) goSearch(); }, 450); });
+  sq.addEventListener("blur", () => { if (!sq.value) sf.classList.remove("open"); });
+
+  $("#playBtn").addEventListener("click", () => setPlaying(!heroTimer));
+  $("#infoBtn").addEventListener("click", () => { $("#infoBody").innerHTML = infoHtml(); openModal($("#infoModal")); });
+  $$("[data-open-info]").forEach(b => b.addEventListener("click", () => $("#infoBtn").click()));
+  $("#motionBtn").addEventListener("click", e => { state.animate = !state.animate; e.currentTarget.textContent = state.animate ? "❚❚" : "▶";
+    e.currentTarget.setAttribute("aria-label", state.animate ? "Pause chart animation" : "Resume chart animation"); toast(state.animate ? "Chart animation on" : "Chart animation off"); renderCharts(); });
+
+  $$(".seg").forEach(seg => seg.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return; const kind = seg.dataset.seg;
+    if (kind === "genre"){ state.genreType = b.dataset.v; $$('[data-seg="genre"] button').forEach(x => x.classList.toggle("on", x === b)); renderTop10(); }
+    else { state.type = b.dataset.v; $$('[data-seg="type"] button').forEach(x => x.classList.toggle("on", x.dataset.v === b.dataset.v)); renderCharts(); }
+  }));
+  $$(".slider .arrow").forEach(a => a.addEventListener("click", () => { const tr = $("#top10"); tr.scrollBy({left:+a.dataset.scroll * tr.clientWidth * .8}); setTimeout(updateArrows, 450); }));
+  $("#top10").addEventListener("scroll", updateArrows, {passive:true}); addEventListener("resize", updateArrows);
+  $("#genres .explore").addEventListener("click", () => filterBrowse({}));
+  $("#genres .explore").style.cursor = "pointer";
+
+  document.addEventListener("click", e => {
+    const g = e.target.closest("[data-genre]"); if (g){ const m = e.target.closest(".modal"); if (m) closeModal(m);
+      filterBrowse({genre:g.dataset.genre, type: g.classList.contains("top10") && state.genreType !== "all" ? (state.genreType === "movie" ? "0" : "1") : null}); return; }
+    const p = e.target.closest("[data-person]"); if (p){ const m = e.target.closest(".modal"); if (m) closeModal(m); filterBrowse({q:p.dataset.person}); return; }
+    const c = e.target.closest(".card"); if (c){ openTitle(+c.dataset.i); return; }
+    const x = e.target.closest("[data-close]"); if (x){ closeModal(x.closest(".modal")); if (x.dataset.go) document.querySelector(x.dataset.go).scrollIntoView(); return; }
+    if (e.target.classList.contains("modal")) closeModal(e.target);
+    if (e.target.id === "emptyReset") resetFilters();
+    if (e.target.id === "clearYear"){ addedYear = ""; applyFilters(); }
+    if (e.target.id === "clearCountry"){ country = ""; applyFilters(); }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape"){ const m = $$(".modal.open").pop(); if (m) closeModal(m); $("#links").classList.remove("open"); }
+    if (e.key === "Tab"){ const m = $$(".modal.open").pop(); if (!m) return; const f = [...m.querySelectorAll("button,a[href]")]; if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]){ e.preventDefault(); f[f.length-1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length-1]){ e.preventDefault(); f[0].focus(); } }
+    if (e.key === "/" && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); $("#navSearch").classList.add("open"); $("#navQuery").focus(); }
+  });
+
+  let fd; $("#fQuery").addEventListener("input", () => { clearTimeout(fd); fd = setTimeout(applyFilters, 200); });
+  ["#fType", "#fGenre", "#fRating", "#fFrom", "#fTo", "#fSort"].forEach(s => $(s).addEventListener("change", applyFilters));
+  $("#fReset").addEventListener("click", resetFilters);
+  $("#fRandom").addEventListener("click", () => { const pool = filtered.length ? filtered : T; openTitle(pool[Math.floor(Math.random() * pool.length)].i); });
+  $("#moreBtn").addEventListener("click", () => { shown += PAGE; renderCards(); });
+  $("#topBtn").addEventListener("click", () => scrollTo({top:0}));
+  $("#copyLink").addEventListener("click", () => {
+    const url = location.href.split("#")[0];
+    const done = () => toast("Link copied"), fail = () => { prompt("Copy this link:", url); };
+    if (navigator.clipboard && isSecureContext) navigator.clipboard.writeText(url).then(done, fail); else fail();
+  });
+}
+
+/* ---------- init ---------- */
+renderHero(); renderKpis(); renderTop10(); renderCharts(); renderInsights(); renderPeople(); renderQuality(); fillSelects(); bind(); applyFilters();
+if (matchMedia("(prefers-reduced-motion: reduce)").matches){ state.animate = false; }
+})();
+</script>
+</body>
+</html>

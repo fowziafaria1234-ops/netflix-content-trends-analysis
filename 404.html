@@ -1,6 +1,14 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Netflix Content Trends Analysis</title>
+<html lang="en"><head><meta charset="utf-8"><title>Page not found · Netflix Content Trends Analysis</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script>location.replace("/netflix-content-trends-analysis/dashboard/");</script>
-<style>body{background:#141414;color:#fff;font-family:Helvetica,Arial,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center}a{color:#fff;background:#e50914;padding:10px 22px;border-radius:4px;text-decoration:none;font-weight:700}</style>
-</head><body><div><h1>Lost your way?</h1><p>This page moved. The dashboard is one click away.</p><p><a href="/netflix-content-trends-analysis/dashboard/">Open the dashboard</a></p></div></body></html>
+<script>
+  // Redirect stray URLs to the dashboard once. Never redirect from the dashboard itself (prevents loops).
+  var base = "/netflix-content-trends-analysis/dashboard/";
+  if (location.pathname.indexOf("/dashboard") === -1 && !sessionStorage.getItem("nf404")) {
+    try { sessionStorage.setItem("nf404", "1"); } catch (e) {}
+    location.replace(base);
+  }
+</script>
+<style>body{background:#141414;color:#fff;font-family:Helvetica,Arial,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center;padding:20px}a{color:#fff;background:#e50914;padding:10px 22px;border-radius:4px;text-decoration:none;font-weight:700;display:inline-block;margin:6px}</style>
+</head><body><div><h1>Lost your way?</h1><p>This page doesn't exist.</p>
+<p><a href="/netflix-content-trends-analysis/dashboard/">Open the dashboard</a><a href="https://fowziafaria1234-ops.github.io/fowziafaria1234-ops/">Faria's portfolio</a></p></div></body></html>

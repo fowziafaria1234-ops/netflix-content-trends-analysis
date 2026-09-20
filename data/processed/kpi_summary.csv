@@ -1,0 +1,27 @@
+,value
+titles,7787
+movies,5377
+tv,2410
+movie_share_pct,69.1
+countries,117
+genres,42
+directors,4478
+median_movie_min,98.0
+mean_movie_min,99.3
+single_season_pct,66.7
+median_release_year,2017
+oldest_release,1925
+newest_release,2021
+first_added,01 Jan 2008
+last_added,16 Jan 2021
+peak_year,2019
+peak_year_titles,2153
+last_full_year,2020
+last_full_year_titles,2009
+added_2016_2020,7515
+added_2016_2020_pct,96.6
+adult_pct,45.3
+released_2015_plus_pct,70.0
+fresh_on_arrival_pct,55.6
+missing_director,2389
+missing_date,10
